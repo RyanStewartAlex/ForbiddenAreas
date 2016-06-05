@@ -1,69 +1,59 @@
 package me.RyanStewart.ForbiddenAreas;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-import net.md_5.bungee.api.ChatColor;
-
 
 public class ListenerClass implements Listener{
 	
-	public int clickCount = 0;
-	public Location loc1;
-	public Location loc2;
-	public Map<Block, Material> oldLocs = new HashMap<Block, Material>();
-	
+	private Location loc1 = ForbiddenAreas.loc1;
+	private Location loc2 = ForbiddenAreas.loc2;
+	private Material selectionBlock = Material.DOUBLE_STONE_SLAB2;
 	
 	public ListenerClass(ForbiddenAreas plugin){
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
 	
+	public void onInArea(Player plr){
+		plr.setVelocity(plr.getLocation().getDirection().multiply(-1.0023));
+	}
+	
 	
 	@EventHandler
 	public void onDmg(BlockDamageEvent e){
-		Player plr = e.getPlayer();
-		
-		clickCount++;
-		if (clickCount == 1){
-			loc1 = e.getBlock().getLocation();
-			e.getBlock().setType(Material.IRON_BLOCK);
-			oldLocs.put(loc1.getBlock(), e.getBlock().getType());
-		}
-		if (clickCount == 2){
-			//on second click
-			loc2 = e.getBlock().getLocation();
-			e.getBlock().setType(Material.IRON_BLOCK);
-			oldLocs.put(loc2.getBlock(), e.getBlock().getType());
-		}
-		else if (clickCount >= 3){
+		if (ForbiddenAreas.selecting == true){
+			ForbiddenAreas.clickCount++;
+			if (ForbiddenAreas.clickCount == 1){
+				//resetting
+				ForbiddenAreas.oldLocs.clear();
+				loc1 = null;
+				loc2 = null;
+				//location 1
+				loc1 = e.getBlock().getLocation();
+				Material m1 = e.getBlock().getType();
+				ForbiddenAreas.oldLocs.put(loc1.getBlock(), m1);
+				loc1.getBlock().setType(selectionBlock);
+			}
 			
-			loc1.getBlock().setType(oldLocs.get(loc1));
-			loc2.getBlock().setType(oldLocs.get(loc2));
-			
-			loc1 = null;
-			loc2 = null;
-			oldLocs.remove(loc1.getBlock());
-			oldLocs.remove(loc2.getBlock());
-			
-			clickCount = 1;
-			loc1 = e.getBlock().getLocation();
-			e.getBlock().setType(Material.IRON_BLOCK);
-			oldLocs.put(loc1.getBlock(), e.getBlock().getType());
+			if (ForbiddenAreas.clickCount == 2){
+				//location 2
+				loc2 = e.getBlock().getLocation();
+				Material m2 = e.getBlock().getType();
+				ForbiddenAreas.oldLocs.put(loc2.getBlock(), m2);
+				loc2.getBlock().setType(selectionBlock);
+				ForbiddenAreas.clickCount = 0;
+				ForbiddenAreas.selecting = false;
+			}
+			e.setCancelled(true);
 		}
-		
-		plr.sendMessage(ChatColor.GREEN + "Changed to click number " + clickCount);
-		
-		e.setCancelled(true);
 	}
+	
+	
 	
 	@EventHandler
 	public void onWalk(PlayerMoveEvent e){
@@ -75,31 +65,29 @@ public class ListenerClass implements Listener{
 				if (plr.getLocation().getBlockX() >= loc2.getBlockX() && plr.getLocation().getBlockX() <= loc1.getBlockX()){ //if in x range
 					if (loc1.getBlockZ() > loc2.getBlockZ()){
 						if (plr.getLocation().getBlockZ() >= loc2.getBlockZ() && plr.getLocation().getBlockZ() <= loc1.getBlockZ()){ //if in z range
-							plr.teleport(new Location(plr.getWorld(), 100, 100, 100));
+							onInArea(plr);
 						}
 					}
 					else
 					{
 						if (plr.getLocation().getBlockZ() <= loc2.getBlockZ() && plr.getLocation().getBlockZ() >= loc1.getBlockZ()){ //if in z range
-							plr.teleport(new Location(plr.getWorld(), 100, 100, 100));
+							onInArea(plr);
 						}
 					}
 				}
 			}
 			else
-			{
-				plr.sendMessage("BYE");
-				
+			{				
 				if (plr.getLocation().getBlockX() <= loc2.getBlockX() && plr.getLocation().getBlockX() >= loc1.getBlockX()){ //if in x range
 					if (loc1.getBlockZ() > loc2.getBlockZ()){
 						if (plr.getLocation().getBlockZ() >= loc2.getBlockZ() && plr.getLocation().getBlockZ() <= loc1.getBlockZ()){ //if in z range
-							plr.teleport(new Location(plr.getWorld(), 100, 100, 100));
+							onInArea(plr);
 						}
 					}
 					else
 					{
 						if (plr.getLocation().getBlockZ() <= loc2.getBlockZ() && plr.getLocation().getBlockZ() >= loc1.getBlockZ()){ //if in z range
-							plr.teleport(new Location(plr.getWorld(), 100, 100, 100));
+							onInArea(plr);
 						}
 					}
 				}
