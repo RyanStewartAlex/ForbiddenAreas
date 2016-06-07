@@ -32,6 +32,7 @@ public class ForbiddenAreas extends JavaPlugin{
 		pm.addPermission(new Permission("ForbiddenAreas.destroy")); //to delete areas
 		pm.addPermission(new Permission("ForbiddenAreas.toggle")); //to show/hide areas
 		pm.addPermission(new Permission("ForbiddenAreas.list")); //to list areas
+		pm.addPermission(new Permission("ForbiddenAreas.teleport")); //to tele to areas
 				
 		if (!this.getConfig().contains("prefix")){
 			this.getConfig().addDefault("prefix", ChatColor.GREEN + "[" + ChatColor.AQUA + "" + ChatColor.BOLD + "FA" + ChatColor.RESET + "" + ChatColor.GREEN + "] ");
@@ -44,6 +45,9 @@ public class ForbiddenAreas extends JavaPlugin{
 		}
 		if (!this.getConfig().contains("regions")){
 			this.getConfig().createSection("regions");
+		}
+		if (!this.getConfig().contains("teleport_offset")){
+			this.getConfig().addDefault("teleport_offset", 2);
 		}
 		this.getConfig().options().copyDefaults(true);
 		saveConfig();
@@ -147,7 +151,7 @@ public class ForbiddenAreas extends JavaPlugin{
 						}
 						plr.sendMessage((String) this.getConfig().get("prefix") + ChatColor.GREEN + "Region successfully hidden.");
 					}else{
-						plr.sendMessage(ChatColor.RED + "\"" + args[0] + "\"" + " is not a valid region name.");
+						plr.sendMessage((String) this.getConfig().get("prefix") + ChatColor.RED + "\"" + args[0] + "\"" + " is not a valid region name.");
 					}
 				}else{
 					plr.sendMessage(ChatColor.RED + "You do not have permission to do that.");
@@ -165,13 +169,40 @@ public class ForbiddenAreas extends JavaPlugin{
 						}
 						plr.sendMessage((String) this.getConfig().get("prefix") + ChatColor.GREEN  + "Region successfully shown.");
 					}else{
-						plr.sendMessage(ChatColor.RED + "\"" + args[0] + "\"" + " is not a valid region name.");
+						plr.sendMessage((String) this.getConfig().get("prefix") + ChatColor.RED + "\"" + args[0] + "\"" + " is not a valid region name.");
+					}
+				}else{
+					plr.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+				}
+			}else if(args.length == 2 && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("teleport"))){
+				if (plr.hasPermission("ForbiddenAreas.teleport")){
+					if (this.getConfig().get("regions." + args[0]) != null){
+						if (this.getConfig().get("regions." + args[0] + ".loc1pos") != null){
+							Location tpl1 = (Location) this.getConfig().get("regions." + args[0] + ".loc1pos");
+							Location tpl2 = (Location) this.getConfig().get("regions." + args[0] + ".loc2pos");
+							int teleOffset = (int) this.getConfig().get("teleport_offset");
+							if (tpl1.getBlockX() < tpl2.getBlockX()){
+								if (tpl1.getBlockZ() < tpl2.getBlockZ()){
+									plr.teleport(new Location(plr.getWorld(), tpl1.getBlockX() - teleOffset , tpl1.getBlockY() + teleOffset, tpl1.getBlockZ() - teleOffset));
+								}else{
+									plr.teleport(new Location(plr.getWorld(), tpl1.getBlockX() - teleOffset , tpl1.getBlockY() + 2, tpl1.getBlockZ() + teleOffset));
+								}
+							}else{
+								if (tpl1.getBlockZ() < tpl2.getBlockZ()){
+									plr.teleport(new Location(plr.getWorld(), tpl1.getBlockX() + teleOffset , tpl1.getBlockY() + 2, tpl1.getBlockZ() - teleOffset));
+								}else{
+									plr.teleport(new Location(plr.getWorld(), tpl1.getBlockX() + teleOffset , tpl1.getBlockY() + 2, tpl1.getBlockZ() + teleOffset));
+								}
+							}
+						}
+					}else{
+						plr.sendMessage((String) this.getConfig().get("prefix") + ChatColor.RED + "\"" + args[0] + "\"" + " is not a valid region name.");
 					}
 				}else{
 					plr.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 				}
 			}else{
-				plr.sendMessage(ChatColor.RED + "Too many or incorrect arguments.");
+				plr.sendMessage((String) this.getConfig().get("prefix") + ChatColor.RED + "Incorrect arguments.");
 			}
 			
 			return true;

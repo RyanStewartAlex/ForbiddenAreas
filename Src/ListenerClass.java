@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.block.BlockBreakEvent;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -30,6 +31,48 @@ public class ListenerClass implements Listener{
 	
 	@EventHandler
 	public void onDmg(BlockDamageEvent e){
+		if (ForbiddenAreas.selecting == true){
+			ForbiddenAreas.clickCount++;
+			if (ForbiddenAreas.clickCount == 1){
+				//location 1
+				ForbiddenAreas.loc1 = e.getBlock().getLocation();
+				String m1 = e.getBlock().getType().toString();
+				ForbiddenAreas.loc1.getBlock().setType(Material.getMaterial((String) config.get("selection_block")));
+				
+				
+				String pathPos1 = "regions." + (ForbiddenAreas.regionName) + ".loc1pos";
+				String pathType1 = "regions." + (ForbiddenAreas.regionName) + ".loc1type";
+				config.set(pathPos1, ForbiddenAreas.loc1);
+				config.set(pathType1, m1);
+				plugin.saveConfig();
+				
+				
+			}
+			
+			if (ForbiddenAreas.clickCount == 2){
+				//location 2
+				ForbiddenAreas.loc2 = e.getBlock().getLocation();
+				String m2 = e.getBlock().getType().toString();
+				ForbiddenAreas.loc2.getBlock().setType(Material.getMaterial((String) config.get("selection_block")));
+				
+				
+				String pathPos2 = "regions." + (ForbiddenAreas.regionName) + ".loc2pos";
+				String pathType2 = "regions." + (ForbiddenAreas.regionName) + ".loc2type";
+				config.set(pathPos2, ForbiddenAreas.loc2);
+				config.set(pathType2, m2);
+				plugin.saveConfig();
+				
+				
+				ForbiddenAreas.clickCount = 0;
+				ForbiddenAreas.selecting = false;
+				e.getPlayer().sendMessage((String) config.get("prefix") + ChatColor.GREEN + "Region \"" + ForbiddenAreas.regionName + "\" created successfully!");
+			}
+			e.setCancelled(true);
+		}
+	}
+	
+	@EventHandler
+	public void onBrk(BlockBreakEvent e){
 		if (ForbiddenAreas.selecting == true){
 			ForbiddenAreas.clickCount++;
 			if (ForbiddenAreas.clickCount == 1){
